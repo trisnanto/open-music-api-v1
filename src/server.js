@@ -8,8 +8,6 @@ const SongsService = require('./services/postgres/SongsService');
 const AlbumsValidator = require('./validator/albums');
 const SongsValidator = require('./validator/songs');
 const ClientError = require('./exceptions/ClientError');
-// const InvariantError = require('./exceptions/InvariantError');
-// const NotFoundError = require('./exceptions/NotFoundError');
 
 const init = async () => {
   const albumsService = new AlbumsService();
@@ -52,8 +50,6 @@ const init = async () => {
           message: response.message,
         });
         newResponse.code(response.statusCode);
-        console.log(newResponse.statusCode);
-        console.log(newResponse.source);
         return newResponse;
       }
       // mempertahankan penanganan client error oleh hapi secara native, seperti 404, etc.
