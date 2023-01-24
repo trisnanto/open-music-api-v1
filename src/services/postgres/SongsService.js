@@ -15,11 +15,10 @@ class SongsService {
   }) {
     const id = nanoid(16);
     const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
 
     const query = {
-      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
-      values: [id, title, year, genre, performer, duration, albumId, createdAt, updatedAt],
+      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $8) RETURNING id',
+      values: [id, title, year, genre, performer, duration, albumId, createdAt],
     };
 
     const result = await this._pool.query(query);
@@ -36,20 +35,22 @@ class SongsService {
       text: '',
     };
     if (!title && !performer) {
-      query.text = 'SELECT * FROM songs';
+      query.text = 'SELECT id, title, performer FROM songs';
     } else if (title && !performer) {
-      query.text = 'SELECT * FROM songs WHERE LOWER(songs.title) LIKE $1';
+      query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1';
       query.values = [`%${title}%`];
     } else if (!title && performer) {
-      query.text = 'SELECT * FROM songs WHERE LOWER(songs.performer) LIKE $1';
+      query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.performer) LIKE $1';
       query.values = [`%${performer}%`];
     } else if (title && performer) {
-      query.text = 'SELECT * FROM songs WHERE LOWER(songs.title) LIKE $1 AND LOWER(songs.performer) LIKE $2';
+      query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1 AND LOWER(songs.performer) LIKE $2';
       query.values = [`%${title}%`, `%${performer}%`];
     }
-    const result = await this._pool.query(query);
-    const songs = result.rows.map(mapSongDBToSongModel);
-    return songs.map((song) => ({ id: song.id, title: song.title, performer: song.performer }));
+    // const result = await this._pool.query(query);
+    const { rows } = await this._pool.query(query);
+    // const songs = result.rows.map(mapSongDBToSongModel);
+    return rows.map(mapSongDBToSongModel);
+    // return songs.map((song) => ({ id: song.id, title: song.title, performer: song.performer }));
   }
 
   async getSongById(id) {
