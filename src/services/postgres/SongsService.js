@@ -21,13 +21,13 @@ class SongsService {
       values: [id, title, year, genre, performer, duration, albumId, createdAt],
     };
 
-    const result = await this._pool.query(query);
+    const { rows } = await this._pool.query(query);
 
-    if (!result.rows[0].id) {
+    if (!rows[0].id) {
       throw new InvariantError('Lagu gagal ditambahkan');
     }
 
-    return result.rows[0].id;
+    return rows[0].id;
   }
 
   async getSongs({ title, performer }) {
@@ -47,7 +47,7 @@ class SongsService {
       query.values = [`%${title}%`, `%${performer}%`];
     }
     const { rows } = await this._pool.query(query);
-    return rows.map(mapSongDBToSongModel);
+    return rows;
   }
 
   async getSongById(id) {
@@ -55,12 +55,12 @@ class SongsService {
       text: 'SELECT * FROM songs WHERE id = $1',
       values: [id],
     };
-    const result = await this._pool.query(query);
-    if (!result.rows.length) {
+    const { rows, rowCount } = await this._pool.query(query);
+    if (!rowCount) {
       throw new NotFoundError('Lagu tidak ditemukan');
     }
 
-    return result.rows.map(mapSongDBToSongModel)[0];
+    return rows.map(mapSongDBToSongModel)[0];
   }
 
   async editSongById(id, {
