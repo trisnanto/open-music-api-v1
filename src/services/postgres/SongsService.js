@@ -13,7 +13,7 @@ class SongsService {
   async addSong({
     title, year, genre, performer, duration = null, albumId = null,
   }) {
-    const id = nanoid(16);
+    const id = `song-${nanoid(16)}`;
     const createdAt = new Date().toISOString();
 
     const query = {
@@ -46,11 +46,8 @@ class SongsService {
       query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1 AND LOWER(songs.performer) LIKE $2';
       query.values = [`%${title}%`, `%${performer}%`];
     }
-    // const result = await this._pool.query(query);
     const { rows } = await this._pool.query(query);
-    // const songs = result.rows.map(mapSongDBToSongModel);
     return rows.map(mapSongDBToSongModel);
-    // return songs.map((song) => ({ id: song.id, title: song.title, performer: song.performer }));
   }
 
   async getSongById(id) {
@@ -59,7 +56,6 @@ class SongsService {
       values: [id],
     };
     const result = await this._pool.query(query);
-
     if (!result.rows.length) {
       throw new NotFoundError('Lagu tidak ditemukan');
     }
