@@ -3,9 +3,10 @@
 const autoBind = require('auto-bind');
 
 class AlbumsHandler {
-  constructor(service, validator) {
+  constructor(service, validator, storageService) {
     this._service = service;
     this._validator = validator;
+    this._storageService = storageService;
 
     autoBind(this);
   }
@@ -53,6 +54,73 @@ class AlbumsHandler {
       status: 'success',
       message: 'Album berhasil dihapus',
     };
+  }
+
+  async postUploadCoverImageHandler(request, h) {
+    const { cover } = request.payload;
+    const { id: albumId } = request.params;
+
+    this._validator.validateCoverImageHeaders(cover.hapi.headers);
+
+    const filename = await this._storageService.writeFile(cover, cover.hapi);
+    const fileLocation = `http://${process.env.HOST}:${process.env.PORT}/albums/covers/${filename}`;
+
+    await this._service.addAlbumCover(albumId, fileLocation);
+
+    const response = h.response({
+      status: 'success',
+      message: 'Sampul berhasil diunggah',
+    });
+    response.code(201);
+    return response;
+  }
+
+  async postLikesByAlbumIdHandler(request, h) {
+    const { id: albumId } = request.params;
+    const { id: credentialId } = request.auth.credentials;
+    let message = '';
+
+    // cek apakah terdapat album yang akan dilike
+    await this._service.getAlbumById(albumId);
+
+    // cek pengguna apakah sudah like album
+    const isAlbumAlreadyLiked = await this._service.isAlbumAlreadyLiked(albumId, credentialId);
+
+    if (isAlbumAlreadyLiked) {
+      await this._service.removeLikesByAlbumId(albumId, credentialId);
+      message = 'Album berhasil di unlike';
+    } else {
+      await this._service.addLikesByAlbumId(albumId, credentialId);
+      message = 'Album berhasil di like';
+    }
+    const response = h.response({
+      status: 'success',
+      message,
+    });
+    response.code(201);
+    return response;
+  }
+
+  async getLikesByAlbumIdHandler(request, h) {
+    const { id: albumId } = request.params;
+
+    // cek apakah terdapat album yang akan dilihat jumlah likes
+    await this._service.getAlbumById(albumId);
+
+    // cek auth utk cek pengguna udah like album apa belum
+    const { likes, source } = await this._service.countLikesByAlbumId(albumId);
+
+    const response = h.response({
+      status: 'success',
+      data: {
+        likes,
+      },
+    });
+
+    if (source === 'cache') {
+      response.header('X-Data-Source', 'cache');
+    }
+    return response;
   }
 }
 

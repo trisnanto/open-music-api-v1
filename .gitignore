@@ -1,3 +1,4 @@
 node_modules
+src/api/albums/file
 .env
 .DS_Store

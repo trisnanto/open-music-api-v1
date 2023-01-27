@@ -93,10 +93,6 @@ class PlaylistsService {
     const { rows } = await this._pool.query(query2);
     playlist.songs = rows;
 
-    if (!rows.length) {
-      throw new NotFoundError('Daftar lagu tidak ditemukan');
-    }
-
     return playlist;
   }
 
