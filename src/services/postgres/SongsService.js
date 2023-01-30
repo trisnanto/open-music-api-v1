@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-underscore-dangle */
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
@@ -30,22 +31,31 @@ class SongsService {
     return rows[0].id;
   }
 
-  async getSongs({ title, performer }) {
+  // async getSongs({ title, performer }) {
+  //   const query = {
+  //     text: '',
+  //   };
+  //   if (!title && !performer) {
+  //     query.text = 'SELECT id, title, performer FROM songs';
+  //   } else if (title && !performer) {
+  //     query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1';
+  //     query.values = [`%${title}%`];
+  //   } else if (!title && performer) {
+  //     query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.performer) LIKE $1';
+  //     query.values = [`%${performer}%`];
+  //   } else if (title && performer) {
+  //     query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1 AND LOWER(songs.performer) LIKE $2';
+  //     query.values = [`%${title}%`, `%${performer}%`];
+  //   }
+  //   const { rows } = await this._pool.query(query);
+  //   return rows;
+  // }
+
+  async getSongs({ title = '', performer = '' }) {
     const query = {
-      text: '',
+      text: 'SELECT id, title, performer FROM songs WHERE title ILIKE $1 and performer ILIKE $2',
+      values: [`%${title}%`, `%${performer}%`],
     };
-    if (!title && !performer) {
-      query.text = 'SELECT id, title, performer FROM songs';
-    } else if (title && !performer) {
-      query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1';
-      query.values = [`%${title}%`];
-    } else if (!title && performer) {
-      query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.performer) LIKE $1';
-      query.values = [`%${performer}%`];
-    } else if (title && performer) {
-      query.text = 'SELECT id, title, performer FROM songs WHERE LOWER(songs.title) LIKE $1 AND LOWER(songs.performer) LIKE $2';
-      query.values = [`%${title}%`, `%${performer}%`];
-    }
     const { rows } = await this._pool.query(query);
     return rows;
   }
@@ -74,7 +84,7 @@ class SongsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Gagal memperbarui lagu. Id tidak ditemukan');
     }
   }
@@ -87,7 +97,7 @@ class SongsService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
     }
   }

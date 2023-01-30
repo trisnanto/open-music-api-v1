@@ -91,7 +91,8 @@ class PlaylistsService {
       values: [playlistId],
     };
     const { rows } = await this._pool.query(query2);
-    playlist.songs = rows;
+
+    playlist.songs = (rows.length > 0) ? rows : [];
 
     return playlist;
   }

@@ -121,6 +121,7 @@ class AlbumsService {
     };
 
     const { rows } = await this._pool.query(query);
+    await this._cacheService.delete(`likes:${albumId}`);
     return rows[0].id;
   }
 
